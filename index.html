@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Controle de Estoque - Logística</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>📦 Controle de Estoque Hospitalar</h1>
+
+<div class="form"></div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Produtos</th>
+      <th>Quantidades (caixas)</th>
+      <th>Alterar as quantidades</th>
+    </tr>
+  </thead>
+  <tbody id="tabela"></tbody>
+</table>
+
+<h2>📊 Histórico de Alterações</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Produtos</th>
+      <th>Quantidades antigas</th>
+      <th>Quantidades novas</th>
+    </tr>
+  </thead>
+  <tbody id="historico"></tbody>
+</table>
+
+<h2>🔢 Movimentações de Estoque</h2>
+
+<!-- ✔ AQUI ESTÁ O AJUSTE -->
+<p style="margin-bottom:10px; font-weight:bold; color:#555;">
+  Operações: soma (+), subtração (-), multiplicação (*) e divisão (/)
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Produtos</th>
+      <th>Operações</th>
+      <th>Antes</th>
+      <th>Depois</th>
+    </tr>
+  </thead>
+  <tbody id="movimentacoes"></tbody>
+</table>
+
+<script>
+let estoque = [];
+let historico = [];
+let movimentacoes = [];
+
+const produtosFixos = [
+  "Luvas descartáveis",
+  "Máscaras cirúrgicas",
+  "Seringas",
+  "Aventais hospitalares"
+];
+
+let estoquePadrao = [
+  { produto: "Luvas descartáveis", quantidade: 100 },
+  { produto: "Máscaras cirúrgicas", quantidade: 80 },
+  { produto: "Seringas", quantidade: 60 },
+  { produto: "Aventais hospitalares", quantidade: 40 }
+];
+
+function carregarDados() {
+  estoque = JSON.parse(JSON.stringify(estoquePadrao));
+
+  historico = [
+    { produto: "Luvas descartáveis", antiga: 100, nova: "" },
+    { produto: "Máscaras cirúrgicas", antiga: 80, nova: "" },
+    { produto: "Seringas", antiga: 60, nova: "" },
+    { produto: "Aventais hospitalares", antiga: 40, nova: "" }
+  ];
+
+  movimentacoes = [];
+}
+
+function renderizar() {
+  const tabela = document.getElementById("tabela");
+  tabela.innerHTML = "";
+
+  estoquePadrao.forEach((item, index) => {
+    tabela.innerHTML += `
+      <tr>
+        <td>${item.produto}</td>
+        <td>${item.quantidade}</td>
+        <td><button onclick="editar(${index})">Editar</button></td>
+      </tr>
+    `;
+  });
+}
+
+function renderizarHistorico() {
+  const tabela = document.getElementById("historico");
+  tabela.innerHTML = "";
+
+  historico.forEach(item => {
+    tabela.innerHTML += `
+      <tr>
+        <td>${item.produto}</td>
+        <td>${item.antiga}</td>
+        <td>${item.nova}</td>
+      </tr>
+    `;
+  });
+}
+
+function renderizarMovimentacoes() {
+  const tabela = document.getElementById("movimentacoes");
+  tabela.innerHTML = "";
+
+  produtosFixos.forEach(produto => {
+    const mov = movimentacoes.filter(m => m.produto === produto).pop();
+
+    tabela.innerHTML += `
+      <tr>
+        <td>${produto}</td>
+        <td>${mov ? mov.operacao : "—"}</td>
+        <td>${mov ? mov.antes : "—"}</td>
+        <td>${mov ? mov.depois : "—"}</td>
+      </tr>
+    `;
+  });
+}
+
+function editar(index) {
+  const atual = estoque[index].quantidade;
+
+  const entrada = prompt(
+    "Digite a operação:\n(+10, -5, *2, /2 ou número direto)",
+    atual
+  );
+
+  if (entrada !== null && entrada !== "") {
+    let novaQtd;
+    let operacaoTexto;
+
+    if (entrada.startsWith("+")) {
+      novaQtd = atual + Number(entrada.slice(1));
+      operacaoTexto = "Soma (" + entrada + ")";
+    } else if (entrada.startsWith("-")) {
+      novaQtd = atual - Number(entrada.slice(1));
+      operacaoTexto = "Subtração (" + entrada + ")";
+    } else if (entrada.startsWith("*")) {
+      novaQtd = atual * Number(entrada.slice(1));
+      operacaoTexto = "Multiplicação (" + entrada + ")";
+    } else if (entrada.startsWith("/")) {
+      novaQtd = atual / Number(entrada.slice(1));
+      operacaoTexto = "Divisão (" + entrada + ")";
+    } else {
+      novaQtd = Number(entrada);
+      operacaoTexto = "Substituição (" + entrada + ")";
+    }
+
+    if (isNaN(novaQtd)) {
+      alert("Valor inválido!");
+      return;
+    }
+
+    estoque[index].quantidade = novaQtd;
+    historico[index].nova = novaQtd;
+
+    movimentacoes.push({
+      produto: estoquePadrao[index].produto,
+      operacao: operacaoTexto,
+      antes: atual,
+      depois: novaQtd
+    });
+
+    renderizarHistorico();
+    renderizarMovimentacoes();
+  }
+}
+
+window.onload = function() {
+  carregarDados();
+  renderizar();
+  renderizarHistorico();
+  renderizarMovimentacoes();
+};
+</script>
+
+</body>
+</html>
